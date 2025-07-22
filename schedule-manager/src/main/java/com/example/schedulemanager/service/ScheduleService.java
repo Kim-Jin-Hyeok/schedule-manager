@@ -5,7 +5,10 @@ import com.example.schedulemanager.domain.User;
 import com.example.schedulemanager.dto.ScheduleRequestDto;
 import com.example.schedulemanager.dto.ScheduleResponseDto;
 import com.example.schedulemanager.repository.ScheduleRepository;
+import com.example.schedulemanager.exception.CustomException;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,10 +39,10 @@ public class ScheduleService {
 	}
 	
 	public void deleteSchedule(Long id, User user) {
-		Schedule schedule = scheduleRepository.findById(id).orElseThrow(() -> new RuntimeException("일정이 존재하지 않습니다."));
+		Schedule schedule = scheduleRepository.findById(id).orElseThrow(() -> new CustomException("일정이 존재하지 않습니다.", HttpStatus.NOT_FOUND));
 		
 		if(!schedule.getUser().getId().equals(user.getId())) {
-			throw new RuntimeException("삭제 권한이 없습니다.");
+			throw new CustomException("삭제 권한이 없습니다.", HttpStatus.FORBIDDEN);
 		}
 		
 		scheduleRepository.delete(schedule);
