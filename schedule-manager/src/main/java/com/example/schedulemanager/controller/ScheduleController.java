@@ -2,6 +2,8 @@ package com.example.schedulemanager.controller;
 
 import com.example.schedulemanager.domain.Schedule;
 import com.example.schedulemanager.domain.User;
+import com.example.schedulemanager.dto.ScheduleRequestDto;
+import com.example.schedulemanager.dto.ScheduleResponseDto;
 import com.example.schedulemanager.service.ScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,12 +19,12 @@ public class ScheduleController {
 	private final ScheduleService scheduleService;
 	
 	@PostMapping
-	public Schedule createSchedule(@RequestBody Schedule schedule, @AuthenticationPrincipal User user) {
-		return scheduleService.createSchedule(schedule, user);
+	public Schedule createSchedule(@RequestBody ScheduleRequestDto dto, @AuthenticationPrincipal User user) {
+		return scheduleService.createSchedule(dto, user);
 	}
 	
 	@GetMapping
-	public List<Schedule> getSchedules(@AuthenticationPrincipal User user){
+	public List<ScheduleResponseDto> getSchedules(@AuthenticationPrincipal User user){
 		return scheduleService.getSchedules(user);
 	}
 	
