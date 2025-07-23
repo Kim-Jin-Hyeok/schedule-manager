@@ -17,12 +17,12 @@ public class Schedule {
 	private Long id;
 	
 	private String title;
-	
 	private String description;
 	
 	private LocalDateTime startTime;
-	
 	private LocalDateTime endTime;
+	
+	private Integer alarmMinutesBefore;
 	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")

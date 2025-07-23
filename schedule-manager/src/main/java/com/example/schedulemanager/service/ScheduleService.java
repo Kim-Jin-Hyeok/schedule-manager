@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +29,7 @@ public class ScheduleService {
 				.description(dto.getDescription())
 				.startTime(dto.getStartTime())
 				.endTime(dto.getEndTime())
+				.alarmMinutesBefore(dto.getAlarmMinutesBefore())
 				.user(user)
 				.build();
 		schedule.setUser(user);
@@ -55,6 +59,13 @@ public class ScheduleService {
 				.description(schedule.getDescription())
 				.startTime(schedule.getStartTime())
 				.endTime(schedule.getEndTime())
+				.alarmMinutesBefore(schedule.getAlarmMinutesBefore())
 				.build();
+	}
+	
+	public Map<LocalDate, List<ScheduleResponseDto>> getScheduleGroupByDate(User user, LocalDate start, LocalDate end){
+		List<Schedule> schedules = scheduleRepository.findAllByUserAndStartTimeBetween(user, start.atStartOfDay(), end.plusDays(1).atStartOfDay());
+		
+		return schedules.stream().map(ScheduleResponseDto::fromEntity).collect(Collectors.groupingBy(dto -> dto.getStartTime().toLocalDate(), TreeMap::new, Collectors.toList()));
 	}
 }

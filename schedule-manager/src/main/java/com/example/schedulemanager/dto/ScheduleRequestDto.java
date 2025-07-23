@@ -11,4 +11,5 @@ public class ScheduleRequestDto {
 	private String description;
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
+	private Integer alarmMinutesBefore;
 }
