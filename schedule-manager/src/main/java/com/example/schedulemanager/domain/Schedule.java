@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 
+import com.example.schedulemanager.domain.enums.RepeatType;
+
 @Entity
 @Table(name = "schedules")
 @Getter @Setter
@@ -24,7 +26,24 @@ public class Schedule {
 	
 	private Integer alarmMinutesBefore;
 	
+	@Enumerated(EnumType.STRING)
+	private RepeatType repeatType;
+	private Integer repeatCount;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;
+	
+	public Schedule copy() {
+		return Schedule.builder()
+				.title(this.getTitle())
+				.description(this.getDescription())
+				.startTime(null)
+				.endTime(null)
+				.alarmMinutesBefore(this.getAlarmMinutesBefore())
+				.repeatType(this.getRepeatType())
+				.repeatCount(null)
+				.user(this.getUser())
+				.build();
+	}
 }

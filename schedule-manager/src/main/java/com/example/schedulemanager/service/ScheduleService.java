@@ -2,6 +2,7 @@ package com.example.schedulemanager.service;
 
 import com.example.schedulemanager.domain.Schedule;
 import com.example.schedulemanager.domain.User;
+import com.example.schedulemanager.domain.enums.RepeatType;
 import com.example.schedulemanager.dto.ScheduleRequestDto;
 import com.example.schedulemanager.dto.ScheduleResponseDto;
 import com.example.schedulemanager.repository.ScheduleRepository;
@@ -12,6 +13,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,16 +27,21 @@ public class ScheduleService {
 	private final ScheduleRepository scheduleRepository;
 	
 	public Schedule createSchedule(ScheduleRequestDto dto, User user) {
-		Schedule schedule = Schedule.builder()
-				.title(dto.getTitle())
-				.description(dto.getDescription())
-				.startTime(dto.getStartTime())
-				.endTime(dto.getEndTime())
-				.alarmMinutesBefore(dto.getAlarmMinutesBefore())
-				.user(user)
-				.build();
-		schedule.setUser(user);
-		return scheduleRepository.save(schedule);
+		Schedule schedule = dto.toEntity(user);
+		
+		if(dto.getRepeatType() == RepeatType.NONE || dto.getRepeatCount() == null || dto.getRepeatCount() <= 1) {
+			return scheduleRepository.save(schedule);
+		}
+		
+		
+		List<Schedule> schedules = new ArrayList<>();
+		for(int i = 0; i < dto.getRepeatCount(); i++) {
+			Schedule repeated = schedule.copy();
+			repeated.setStartTime(calculateNextTime(schedule.getStartTime(), dto.getRepeatType(), i));
+			repeated.setEndTime(calculateNextTime(schedule.getEndTime(), dto.getRepeatType(), i));
+		}
+		scheduleRepository.saveAll(schedules);
+		return schedules.get(0);
 	}
 	
 	public List<ScheduleResponseDto> getSchedules(User user){
@@ -67,5 +75,14 @@ public class ScheduleService {
 		List<Schedule> schedules = scheduleRepository.findAllByUserAndStartTimeBetween(user, start.atStartOfDay(), end.plusDays(1).atStartOfDay());
 		
 		return schedules.stream().map(ScheduleResponseDto::fromEntity).collect(Collectors.groupingBy(dto -> dto.getStartTime().toLocalDate(), TreeMap::new, Collectors.toList()));
+	}
+	
+	private LocalDateTime calculateNextTime(LocalDateTime time, RepeatType type, int offset) {
+		return switch(type) {
+		case DAILY -> time.plusDays(offset);
+		case WEEKLY -> time.plusWeeks(offset);
+		case MONTHLY -> time.plusMonths(offset);
+		default -> time;
+		};
 	}
 }
