@@ -15,20 +15,5 @@ public class ScheduleManagerApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(ScheduleManagerApplication.class, args);
 	}
-	
-	@Bean
-	public CommandLineRunner testUser(UserRepository userRepository) {
-		return args -> {
-			if(userRepository.findByEmail("test@example.com").isEmpty()) {
-				User user = User.builder().email("test@example.com").password("test").name("user").build();
-				
-				userRepository.save(user);
-				System.out.println("테스트 유저 저장");
-			}
-			else {
-				System.out.println("유저 존재");
-			}
-		};
-	}
 
 }
