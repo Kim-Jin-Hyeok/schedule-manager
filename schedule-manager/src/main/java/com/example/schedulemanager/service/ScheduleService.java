@@ -7,6 +7,9 @@ import com.example.schedulemanager.dto.ScheduleRequestDto;
 import com.example.schedulemanager.dto.ScheduleResponseDto;
 import com.example.schedulemanager.repository.ScheduleRepository;
 import com.example.schedulemanager.scheduler.AlarmScheduler;
+
+import jakarta.transaction.Transactional;
+
 import com.example.schedulemanager.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 
@@ -64,6 +67,7 @@ public class ScheduleService {
 		scheduleRepository.delete(schedule);
 	}
 	
+	@Transactional
 	public ScheduleResponseDto updateSchedule(Long id, ScheduleRequestDto dto, User user) {
 		Schedule schedule = scheduleRepository.findById(id).orElseThrow(() -> new CustomException("일정을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
 		
@@ -71,10 +75,16 @@ public class ScheduleService {
 			throw new CustomException("수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
 		}
 		
-		schedule.updateFromDto(dto);
-		Schedule updated = scheduleRepository.save(schedule);
+		if(schedule.getGroupId() != null) {
+			scheduleRepository.deleteByGroupId(schedule.getGroupId());
+		}
+		else {
+			scheduleRepository.delete(schedule);
+		}
 		
-		return ScheduleResponseDto.fromEntity(updated);
+		Schedule created = createSchedule(dto, user); 
+		
+		return ScheduleResponseDto.fromEntity(created);
 	}
 	
 	public ScheduleResponseDto convertToResponse(Schedule schedule) {

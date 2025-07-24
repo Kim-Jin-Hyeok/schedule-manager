@@ -31,6 +31,8 @@ public class Schedule {
 	private RepeatType repeatType;
 	private Integer repeatCount;
 	
+	private String groupId;
+	
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
 	private User user;

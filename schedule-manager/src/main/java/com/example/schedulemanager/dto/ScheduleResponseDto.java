@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 import com.example.schedulemanager.domain.Schedule;
+import com.example.schedulemanager.domain.enums.RepeatType;
 
 @Getter @Setter
 @NoArgsConstructor
@@ -21,6 +22,9 @@ public class ScheduleResponseDto {
 	private LocalDateTime startTime;
 	private LocalDateTime endTime;
 	private Integer alarmMinutesBefore;
+	private RepeatType repeatType;
+	private Integer repeatCount;
+	private String groupId;
 	
 	public static ScheduleResponseDto fromEntity(Schedule schedule) {
 		return ScheduleResponseDto.builder()
@@ -30,6 +34,9 @@ public class ScheduleResponseDto {
 				.startTime(schedule.getStartTime())
 				.endTime(schedule.getEndTime())
 				.alarmMinutesBefore(schedule.getAlarmMinutesBefore())
+				.repeatType(schedule.getRepeatType())
+				.repeatCount(schedule.getRepeatCount())
+				.groupId(schedule.getGroupId())
 				.build();
 	}
 }
