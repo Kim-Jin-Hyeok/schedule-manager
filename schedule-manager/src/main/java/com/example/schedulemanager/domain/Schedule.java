@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 import com.example.schedulemanager.domain.enums.RepeatType;
+import com.example.schedulemanager.dto.ScheduleRequestDto;
 
 @Entity
 @Table(name = "schedules")
@@ -45,5 +46,15 @@ public class Schedule {
 				.repeatCount(null)
 				.user(this.getUser())
 				.build();
+	}
+	
+	public void updateFromDto(ScheduleRequestDto dto) {
+		this.title = dto.getTitle();
+		this.description = dto.getDescription();
+		this.startTime = dto.getStartTime();
+		this.endTime = dto.getEndTime();
+		this.alarmMinutesBefore = dto.getAlarmMinutesBefore();
+		this.repeatType = dto.getRepeatType();
+		this.repeatCount = dto.getRepeatCount();
 	}
 }

@@ -8,6 +8,7 @@ import com.example.schedulemanager.exception.CustomException;
 import com.example.schedulemanager.service.ScheduleService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.format.annotation.DateTimeFormat;
@@ -42,6 +43,11 @@ public class ScheduleController {
 	public String deleteSchedule(@PathVariable("id") Long id, @AuthenticationPrincipal User user) {
 		scheduleService.deleteSchedule(id, user);
 		return "삭제 완료";
+	}
+	
+	@PutMapping("/{id}")
+	public ResponseEntity<ScheduleResponseDto> updateSchedule(@PathVariable("id") Long id, @RequestBody @Valid ScheduleRequestDto dto, @AuthenticationPrincipal User user){
+		return ResponseEntity.ok(scheduleService.updateSchedule(id, dto, user));
 	}
 	
 	@GetMapping(value = "/range")

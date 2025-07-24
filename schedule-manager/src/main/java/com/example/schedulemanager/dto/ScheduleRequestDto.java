@@ -28,6 +28,7 @@ public class ScheduleRequestDto {
 				.alarmMinutesBefore(this.alarmMinutesBefore)
 				.repeatType(this.repeatType)
 				.repeatCount(this.repeatCount)
+				.user(user)
 				.build();
 	}
 }

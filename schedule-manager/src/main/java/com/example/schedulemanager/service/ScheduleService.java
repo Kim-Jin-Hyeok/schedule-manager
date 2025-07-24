@@ -6,10 +6,12 @@ import com.example.schedulemanager.domain.enums.RepeatType;
 import com.example.schedulemanager.dto.ScheduleRequestDto;
 import com.example.schedulemanager.dto.ScheduleResponseDto;
 import com.example.schedulemanager.repository.ScheduleRepository;
+import com.example.schedulemanager.scheduler.AlarmScheduler;
 import com.example.schedulemanager.exception.CustomException;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -25,12 +27,15 @@ import java.util.stream.Collectors;
 public class ScheduleService {
 	
 	private final ScheduleRepository scheduleRepository;
+	private final AlarmScheduler alarmScheduler;
 	
 	public Schedule createSchedule(ScheduleRequestDto dto, User user) {
 		Schedule schedule = dto.toEntity(user);
 		
 		if(dto.getRepeatType() == RepeatType.NONE || dto.getRepeatCount() == null || dto.getRepeatCount() <= 1) {
-			return scheduleRepository.save(schedule);
+			Schedule saved = scheduleRepository.save(schedule);
+			alarmScheduler.scheduleAlarm(schedule);
+			return saved;
 		}
 		
 		
@@ -39,6 +44,7 @@ public class ScheduleService {
 			Schedule repeated = schedule.copy();
 			repeated.setStartTime(calculateNextTime(schedule.getStartTime(), dto.getRepeatType(), i));
 			repeated.setEndTime(calculateNextTime(schedule.getEndTime(), dto.getRepeatType(), i));
+			alarmScheduler.scheduleAlarm(repeated);
 		}
 		scheduleRepository.saveAll(schedules);
 		return schedules.get(0);
@@ -58,6 +64,19 @@ public class ScheduleService {
 		}
 		
 		scheduleRepository.delete(schedule);
+	}
+	
+	public ScheduleResponseDto updateSchedule(Long id, ScheduleRequestDto dto, User user) {
+		Schedule schedule = scheduleRepository.findById(id).orElseThrow(() -> new CustomException("일정을 찾을 수 없습니다.", HttpStatus.NOT_FOUND));
+		
+		if(!schedule.getUser().getId().equals(user.getId())) {
+			throw new CustomException("수정 권한이 없습니다.", HttpStatus.FORBIDDEN);
+		}
+		
+		schedule.updateFromDto(dto);
+		Schedule updated = scheduleRepository.save(schedule);
+		
+		return ScheduleResponseDto.fromEntity(updated);
 	}
 	
 	public ScheduleResponseDto convertToResponse(Schedule schedule) {

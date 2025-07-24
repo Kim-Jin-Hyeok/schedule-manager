@@ -4,10 +4,15 @@ import com.example.schedulemanager.domain.Schedule;
 import com.example.schedulemanager.repository.ScheduleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.sql.Date;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Slf4j
@@ -16,22 +21,17 @@ import java.util.List;
 public class AlarmScheduler {
 	
 	private final ScheduleRepository scheduleRepository;
+	private final TaskScheduler taskScheduler;
 	
-	@Scheduled(cron = "0 * * * * *")
-	public void checkAlarms() {
-		LocalDateTime now = LocalDateTime.now().withSecond(0).withNano(0);
+	public void scheduleAlarm(Schedule schedule) {
+		if(schedule.getAlarmMinutesBefore() == null || schedule.getAlarmMinutesBefore() == 0) return;
 		
-		List<Schedule> schedules = scheduleRepository.findAll();
+		LocalDateTime alarmTime = schedule.getStartTime().minusMinutes(schedule.getAlarmMinutesBefore());
+		Instant triggerTime = alarmTime.atZone(ZoneId.systemDefault()).toInstant();
 		
-		for(Schedule schedule : schedules) {
-			if(schedule.getAlarmMinutesBefore() == null || schedule.getAlarmMinutesBefore() == 0) continue;
-			
-			LocalDateTime alaramTime = schedule.getStartTime().minusMinutes(schedule.getAlarmMinutesBefore());
-			
-			if(alaramTime.withSecond(0).withNano(0).equals(now)) {
-				log.info("[알림] '{}' 일정이 '{}'분 후에 시작합니다.", schedule.getTitle(), schedule.getAlarmMinutesBefore());
-			}
-		}
+		taskScheduler.schedule(() -> {
+			System.out.printf("[알림] '%s' 일정이 '%d'분 후에 시작합니다.\n", schedule.getTitle(), schedule.getAlarmMinutesBefore());
+		}, Date.from(triggerTime));
 	}
 
 }
