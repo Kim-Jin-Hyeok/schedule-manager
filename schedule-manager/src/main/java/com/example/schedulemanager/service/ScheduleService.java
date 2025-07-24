@@ -33,9 +33,7 @@ public class ScheduleService {
 		Schedule schedule = dto.toEntity(user);
 		
 		if(dto.getRepeatType() == RepeatType.NONE || dto.getRepeatCount() == null || dto.getRepeatCount() <= 1) {
-			Schedule saved = scheduleRepository.save(schedule);
-			alarmScheduler.scheduleAlarm(schedule);
-			return saved;
+			return scheduleRepository.save(schedule);
 		}
 		
 		
@@ -44,7 +42,7 @@ public class ScheduleService {
 			Schedule repeated = schedule.copy();
 			repeated.setStartTime(calculateNextTime(schedule.getStartTime(), dto.getRepeatType(), i));
 			repeated.setEndTime(calculateNextTime(schedule.getEndTime(), dto.getRepeatType(), i));
-			alarmScheduler.scheduleAlarm(repeated);
+			schedules.add(repeated);
 		}
 		scheduleRepository.saveAll(schedules);
 		return schedules.get(0);
